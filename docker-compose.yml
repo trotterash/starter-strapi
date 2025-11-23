@@ -1,0 +1,43 @@
+version: "3.8"
+
+services:
+  strapi:
+    build: .
+    container_name: strapi-app
+    restart: unless-stopped
+    ports:
+      - "1337:1337"
+    environment:
+      - NODE_ENV=production
+      - HOST=0.0.0.0
+      - PORT=1337
+      - APP_KEYS=${APP_KEYS:-toBeModified1,toBeModified2}
+      - API_TOKEN_SALT=${API_TOKEN_SALT:-tobemodified}
+      - ADMIN_JWT_SECRET=${ADMIN_JWT_SECRET:-tobemodified}
+      - TRANSFER_TOKEN_SALT=${TRANSFER_TOKEN_SALT:-tobemodified}
+      - JWT_SECRET=${JWT_SECRET:-tobemodified}
+    volumes:
+      # Mount SQLite database for data persistence
+      - strapi-data:/app/.tmp
+      # Mount uploads for media persistence
+      - strapi-uploads:/app/public/uploads
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:1337/_health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  strapi-data:
+    driver: local
+  strapi-uploads:
+    driver: local
