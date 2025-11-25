@@ -23,8 +23,15 @@ COPY . .
 # Build admin panel
 RUN pnpm build
 
-# Create directory for SQLite database
-RUN mkdir -p .tmp
+# Create directory for SQLite database and remove any existing data.db
+RUN mkdir -p .tmp && rm -f .tmp/data.db
+
+# Copy seed database ONLY
+COPY .tmp/data.db /app/.tmp/data.db.seed
+
+# Copy and set permissions for entrypoint script
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Expose port
 EXPOSE 1337
@@ -32,5 +39,5 @@ EXPOSE 1337
 # Set environment
 ENV NODE_ENV=production
 
-# Start the application
-CMD ["pnpm", "start"]
+# Use custom entrypoint that seeds data on first run
+ENTRYPOINT ["docker-entrypoint.sh"]
